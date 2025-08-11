@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:5.0
+    container_name: todo-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: task-manager
+
+  todo-app:
+    build: .
+    container_name: todo-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongodb
+    environment:
+      PORT: 3000
+      MONGODB_URL: mongodb://mongodb:27017/task-manager
+      JWT_SECRET: ${JWT_SECRET:-your-default-secret-key-change-in-production}
+
+volumes:
+  mongodb_data:
