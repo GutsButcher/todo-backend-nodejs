@@ -89,3 +89,6 @@ typings/
 
 #config folder
 config
+
+.claude/
+**/CLAUDE.md
