@@ -1,5 +1,5 @@
 # Use Node.js LTS version
-FROM node:14-alpine
+FROM node:18-alpine
 
 # Install dependencies for building native modules (sharp)
 RUN apk add --no-cache python3 make g++ 

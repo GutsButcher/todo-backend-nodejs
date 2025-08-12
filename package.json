@@ -5,7 +5,11 @@
   "main": "index.js",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "env-cmd -f ./config/dev.env nodemon src/index.js"
+    "dev": "env-cmd -f ./config/dev.env nodemon src/index.js",
+    "test": "env-cmd -f ./config/test.env jest --runInBand --detectOpenHandles --testPathPattern=simple.test.js",
+    "test:all": "env-cmd -f ./config/test.env jest --runInBand --detectOpenHandles",
+    "test:watch": "env-cmd -f ./config/test.env jest --runInBand --watch",
+    "test:coverage": "env-cmd -f ./config/test.env jest --runInBand --coverage"
   },
   "repository": {
     "type": "git",
@@ -21,13 +25,13 @@
   },
   "homepage": "https://github.com/shubhamgupta2901/nodejs-task-app#readme",
   "dependencies": {
-    "bcrypt": "^3.0.6",
+    "bcrypt": "^5.1.1",
     "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
     "mongodb": "^3.3.2",
     "mongoose": "^5.7.1",
     "multer": "^1.4.2",
-    "sharp": "^0.23.1",
+    "sharp": "^0.32.6",
     "validator": "^11.1.0"
   },
   "devDependencies": {
