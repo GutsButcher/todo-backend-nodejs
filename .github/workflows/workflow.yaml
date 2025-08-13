@@ -98,8 +98,16 @@ jobs:
       - name: Update Kustomize image tag
         run: |
           cd k8s/overlays/prod
-          # Update the image tag in kustomization.yaml
-          kustomize edit set image gwynbliedd/todo-backend-nodejs=${{ needs.build-docker.outputs.image-tag }}
+          
+          # Check if kustomize is available, if not use sed
+          if command -v kustomize &> /dev/null; then
+            echo "Using kustomize to update image tag..."
+            kustomize edit set image gwynbliedd/todo-backend-nodejs=${{ needs.build-docker.outputs.image-tag }}
+          else
+            echo "kustomize not found, using sed to update image tag..."
+            # Update the image tag using sed
+            sed -i "s|newTag: .*|newTag: ${{ github.sha }}|g" kustomization.yaml
+          fi
           
           # Show the changes
           echo "Updated kustomization.yaml:"
