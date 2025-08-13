@@ -4,9 +4,6 @@ on:
   pull_request:
     branches:
       - master
-  push:
-    branches:
-      - master
   workflow_dispatch:
 
 jobs:
@@ -17,13 +14,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: ./.github/actions/caching-action.yaml
         with:
-          node-version: '18'
-        
-      - name: Install dependencies
-        run: npm install
-
+          node-version: '18.x'
+          working-directory: '.'
       - name: Run tests
         # Uses CI-specific test config that only runs unit tests without MongoDB
         run: npm run test:ci
@@ -49,8 +43,10 @@ jobs:
       - name: Build and push Docker image
         id: build
         run: |
-          IMAGE_NAME="${{ secrets.DOCKER_USERNAME }}/todo-backend-nodejs"
-          IMAGE_TAG="$IMAGE_NAME:${{ github.sha }}"
+          # Use a non-secret variable for the username
+          DOCKER_USER="${{ secrets.DOCKER_USERNAME }}"
+          IMAGE_NAME="${DOCKER_USER}/todo-backend-nodejs"
+          IMAGE_TAG="${IMAGE_NAME}:${{ github.sha }}"
           
           # Build the image with both tags
           docker build -t $IMAGE_TAG .
@@ -67,11 +63,12 @@ jobs:
           echo "- $IMAGE_TAG"
           echo "- $IMAGE_NAME:latest"
           
-          echo "image-tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
-          echo "image-name=$IMAGE_NAME" >> $GITHUB_OUTPUT
+          # Output only the constructed values, not the secret itself
+          echo "image-tag=${DOCKER_USER}/todo-backend-nodejs:${{ github.sha }}" >> $GITHUB_OUTPUT
+          echo "sha-tag=${{ github.sha }}" >> $GITHUB_OUTPUT
 
   deploy:
-    runs-on: wsl  # ← Target your specific runner
+    runs-on: wsl   # Self-hosted runner - my WSL
     needs: build-docker
     steps:
       - name: Checkout code

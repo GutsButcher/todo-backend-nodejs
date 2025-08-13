@@ -22,7 +22,7 @@ images:
 # Production replicas
 replicas:
   - name: todo-backend
-    count: 3
+    count: 2
 
 # Production specific patches
 patches:
