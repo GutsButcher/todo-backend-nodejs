@@ -115,6 +115,16 @@ jobs:
           # Create namespace if it doesn't exist
           kubectl create namespace todo-prod --dry-run=client -o yaml | kubectl apply -f -
           
+          # Check for existing PVC in pending state
+          if kubectl get pvc mongodb-pvc -n todo-prod &> /dev/null; then
+            PVC_STATUS=$(kubectl get pvc mongodb-pvc -n todo-prod -o jsonpath='{.status.phase}')
+            if [[ "$PVC_STATUS" == "Pending" ]]; then
+              echo "Found existing PVC in Pending state. Deleting it..."
+              kubectl delete pvc mongodb-pvc -n todo-prod --force --grace-period=0
+              sleep 2
+            fi
+          fi
+          
           # Apply the production overlay
           kubectl apply -k k8s/overlays/prod
           
