@@ -115,6 +115,9 @@ jobs:
           
       - name: Deploy to Kubernetes with Kustomize
         run: |
+          # Create namespace if it doesn't exist
+          kubectl create namespace todo-prod --dry-run=client -o yaml | kubectl apply -f -
+          
           # Apply the production overlay
           kubectl apply -k k8s/overlays/prod
           
