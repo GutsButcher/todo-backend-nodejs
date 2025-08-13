@@ -1,17 +1,8 @@
 #!/bin/bash
 
-# Deploy Todo Backend Application using Kustomize
+# Deploy Todo Backend Application using Kustomize to Production
 
-# Check if environment is provided
-ENV=${1:-dev}
-
-if [[ "$ENV" != "dev" && "$ENV" != "prod" ]]; then
-    echo "❌ Invalid environment. Use 'dev' or 'prod'"
-    echo "Usage: ./deploy-kustomize.sh [dev|prod]"
-    exit 1
-fi
-
-echo "🚀 Starting deployment to $ENV environment using Kustomize..."
+echo "🚀 Starting deployment to production environment using Kustomize..."
 
 # Check if kustomize is available
 if ! command -v kustomize &> /dev/null && ! kubectl kustomize --help &> /dev/null; then
@@ -20,27 +11,39 @@ if ! command -v kustomize &> /dev/null && ! kubectl kustomize --help &> /dev/nul
 fi
 
 # Optional: Set specific image tag
-if [ ! -z "$2" ]; then
-    echo "📦 Setting image tag to: $2"
-    cd overlays/$ENV
-    kustomize edit set image gwynbliedd/todo-backend-nodejs:$2
+if [ ! -z "$1" ]; then
+    echo "📦 Setting image tag to: $1"
+    cd overlays/prod
+    kustomize edit set image gwynbliedd/todo-backend-nodejs:$1
     cd ../..
 fi
 
 # Preview what will be deployed
 echo "👀 Preview of resources to be deployed:"
-kubectl kustomize k8s/overlays/$ENV | kubectl diff -f - || true
+kubectl kustomize k8s/overlays/prod | kubectl diff -f - || true
 
 echo ""
 read -p "📋 Do you want to proceed with the deployment? (y/N) " -n 1 -r
 echo ""
 
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-    echo "🚀 Deploying to $ENV..."
-    kubectl apply -k k8s/overlays/$ENV
+    echo "🚀 Deploying to production..."
     
-    # Get namespace from overlay
-    NAMESPACE="todo-$ENV"
+    # First, handle existing PVC if it exists
+    echo "🔧 Checking for existing PVC..."
+    if kubectl get pvc mongodb-pvc -n todo-prod &> /dev/null; then
+        PVC_STATUS=$(kubectl get pvc mongodb-pvc -n todo-prod -o jsonpath='{.status.phase}')
+        if [[ "$PVC_STATUS" == "Pending" ]]; then
+            echo "⚠️  Found existing PVC in Pending state. Deleting it..."
+            kubectl delete pvc mongodb-pvc -n todo-prod --force --grace-period=0
+            sleep 2
+        fi
+    fi
+    
+    # Apply the kustomization
+    kubectl apply -k k8s/overlays/prod
+    
+    NAMESPACE="todo-prod"
     
     echo "⏳ Waiting for deployments to be ready..."
     kubectl wait --for=condition=available --timeout=300s deployment/todo-backend -n $NAMESPACE
@@ -50,12 +53,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo ""
     echo "📊 Resources in $NAMESPACE namespace:"
     kubectl get all -n $NAMESPACE
-    
-    if [[ "$ENV" == "dev" ]]; then
-        echo ""
-        echo "🔗 Application will be available at: http://<NODE_IP>:30080"
-        echo "   To get your node IP, run: kubectl get nodes -o wide"
-    fi
+    kubectl get pvc -n $NAMESPACE
 else
     echo "❌ Deployment cancelled"
 fi
