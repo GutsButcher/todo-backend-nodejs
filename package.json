@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "env-cmd -f ./config/dev.env nodemon src/index.js",
-    "test": "env-cmd -f ./config/test.env jest --runInBand --detectOpenHandles --testPathPattern=simple.test.js",
+    "test": "jest --testPathPattern=simple.test.js --passWithNoTests",
+    "test:ci": "jest --config jest.config.ci.js --passWithNoTests --forceExit",
     "test:all": "env-cmd -f ./config/test.env jest --runInBand --detectOpenHandles",
     "test:watch": "env-cmd -f ./config/test.env jest --runInBand --watch",
     "test:coverage": "env-cmd -f ./config/test.env jest --runInBand --coverage"

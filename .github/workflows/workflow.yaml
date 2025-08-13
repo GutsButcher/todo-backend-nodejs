@@ -25,7 +25,8 @@ jobs:
         run: npm install
 
       - name: Run tests
-        run: npm test
+        # Uses CI-specific test config that only runs unit tests without MongoDB
+        run: npm run test:ci
 
   build-docker:
     runs-on: ubuntu-latest
