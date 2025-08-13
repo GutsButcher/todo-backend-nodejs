@@ -90,5 +90,10 @@ typings/
 #config folder
 config
 
+# Never commit plain secrets
+k8s/secret.yaml
+k8s/secret-*.yaml
+!k8s/sealed-secret.yaml
+
 .claude/
 **/CLAUDE.md
