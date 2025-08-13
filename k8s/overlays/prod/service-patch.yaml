@@ -3,4 +3,4 @@ kind: Service
 metadata:
   name: todo-backend-service
 spec:
-  type: LoadBalancer  # Change from NodePort to LoadBalancer for production
+  type: ClusterIP  # Use ClusterIP for production - can be exposed via Ingress
