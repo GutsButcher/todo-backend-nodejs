@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Common labels for all resources
+commonLabels:
+  app.kubernetes.io/name: todo-backend
+  app.kubernetes.io/part-of: todo-application
+
+# List of resource files
+resources:
+  - configmap.yaml
+  - sealed-secret.yaml
+  - mongodb-pvc.yaml
+  - mongodb-deployment.yaml
+  - mongodb-service.yaml
+  - deployment.yaml
+  - service.yaml
+
+# Default image configuration
+images:
+  - name: gwynbliedd/todo-backend-nodejs
+    newTag: latest
+  - name: mongo
+    newTag: "5.0"
+
+# Configure replicas
+replicas:
+  - name: todo-backend
+    count: 2
+  - name: mongodb
+    count: 1

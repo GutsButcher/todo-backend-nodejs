@@ -52,12 +52,20 @@ jobs:
           IMAGE_NAME="${{ secrets.DOCKER_USERNAME }}/todo-backend-nodejs"
           IMAGE_TAG="$IMAGE_NAME:${{ github.sha }}"
           
-          # Build the image
-          docker build -t $IMAGE_TAG -t $IMAGE_NAME:latest .
+          # Build the image with both tags
+          docker build -t $IMAGE_TAG .
+          
+          # Tag the same image as latest
+          docker tag $IMAGE_TAG $IMAGE_NAME:latest
           
           # Push both tags
           docker push $IMAGE_TAG
           docker push $IMAGE_NAME:latest
+          
+          # Verify tags
+          echo "Pushed images:"
+          echo "- $IMAGE_TAG"
+          echo "- $IMAGE_NAME:latest"
           
           echo "image-tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
           echo "image-name=$IMAGE_NAME" >> $GITHUB_OUTPUT
@@ -87,20 +95,23 @@ jobs:
           kubectl get nodes
           kubectl get namespaces
 
-      - name: Deploy to Kubernetes
-        uses: azure/k8s-deploy@v1
-        with:
-          manifests: |
-            k8s/configmap.yaml
-            k8s/sealed-secret.yaml
-            k8s/mongodb-pvc.yaml
-            k8s/mongodb-deployment.yaml
-            k8s/mongodb-service.yaml
-            k8s/deployment.yaml
-            k8s/service.yaml
-          images: |
-            gwynbliedd/todo-backend-nodejs=${{ needs.build-docker.outputs.image-tag }}
-          strategy: basic
+      - name: Update Kustomize image tag
+        run: |
+          cd k8s/overlays/prod
+          # Update the image tag in kustomization.yaml
+          kustomize edit set image gwynbliedd/todo-backend-nodejs=${{ needs.build-docker.outputs.image-tag }}
+          
+          # Show the changes
+          echo "Updated kustomization.yaml:"
+          cat kustomization.yaml
+          
+      - name: Deploy to Kubernetes with Kustomize
+        run: |
+          # Apply the production overlay
+          kubectl apply -k k8s/overlays/prod
+          
+          # Wait for rollout
+          kubectl rollout status deployment/todo-backend -n todo-prod --timeout=5m
 
       - name: Cleanup
         if: always()
