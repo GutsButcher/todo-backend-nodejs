@@ -1,0 +1,22 @@
+# Debug deployment to test with a known working image
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-backend-debug
+  labels:
+    app: todo-backend-debug
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-backend-debug
+  template:
+    metadata:
+      labels:
+        app: todo-backend-debug
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80

@@ -49,10 +49,18 @@ jobs:
       - name: Build and push Docker image
         id: build
         run: |
-          IMAGE_TAG="${{ secrets.DOCKER_USERNAME }}/todo-backend-nodejs:${{ github.sha }}"
-          docker build -t $IMAGE_TAG .
+          IMAGE_NAME="${{ secrets.DOCKER_USERNAME }}/todo-backend-nodejs"
+          IMAGE_TAG="$IMAGE_NAME:${{ github.sha }}"
+          
+          # Build the image
+          docker build -t $IMAGE_TAG -t $IMAGE_NAME:latest .
+          
+          # Push both tags
           docker push $IMAGE_TAG
+          docker push $IMAGE_NAME:latest
+          
           echo "image-tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "image-name=$IMAGE_NAME" >> $GITHUB_OUTPUT
 
   deploy:
     runs-on: wsl  # ← Target your specific runner
@@ -91,7 +99,7 @@ jobs:
             k8s/deployment.yaml
             k8s/service.yaml
           images: |
-            todo-backend-nodejs=${{ needs.build-docker.outputs.image-tag }}
+            gwynbliedd/todo-backend-nodejs=${{ needs.build-docker.outputs.image-tag }}
           strategy: basic
 
       - name: Cleanup
