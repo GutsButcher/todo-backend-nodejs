@@ -30,7 +30,3 @@ patches:
     target:
       kind: Deployment
       name: todo-backend
-  - path: service-patch.yaml
-    target:
-      kind: Service
-      name: todo-backend-service

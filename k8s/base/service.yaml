@@ -5,12 +5,11 @@ metadata:
   labels:
     app: todo-backend
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: todo-backend
   ports:
     - port: 3000
       targetPort: 3000
-      nodePort: 30080
       protocol: TCP
       name: http
