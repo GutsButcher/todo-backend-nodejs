@@ -14,7 +14,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: ./.github/actions/caching-action.yaml
+        uses: ./.github/actions/setup-node-cache
         with:
           node-version: '18.x'
           working-directory: '.'
